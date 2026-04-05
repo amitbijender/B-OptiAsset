@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B-OptiAsset - Management Presentation</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stone: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        brand: {
+                            light: '#e0f2fe', 
+                            DEFAULT: '#1976D2', // Bharuwa Solutions Blue
+                            dark: '#1565C0',    // Darker Bharuwa Blue
+                            accent: '#f59e0b',  // Amber for highlights
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Strict Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 280px;
+            }
+        }
+
+        /* Utilities & Animations */
+        .tab-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-btn.active {
+            border-bottom: 3px solid #1976D2;
+            color: #1976D2;
+            font-weight: 700;
+        }
+        
+        /* Mobile Nav active state */
+        .mobile-tab-btn.active {
+            background-color: #e0f2fe;
+            color: #1976D2;
+            border-left: 4px solid #1976D2;
+            font-weight: 700;
+        }
+
+        .section-fade-in {
+            animation: fadeIn 0.4s ease-in forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hidden-section {
+            display: none !important;
+        }
+        
+        /* Timeline styling */
+        .timeline-container {
+            position: relative;
+            border-left: 2px solid #e2e8f0;
+            margin-left: 1rem;
+            padding-left: 1.5rem;
+        }
+        .timeline-marker {
+            position: absolute;
+            left: -0.45rem;
+            width: 0.8rem;
+            height: 0.8rem;
+            border-radius: 50%;
+            background-color: #1976D2;
+        }
+
+        /* Tech Node Background Pattern mimicking the Bharuwa dark theme */
+        .bg-nodes {
+            background-color: #ffffff;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px), radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans min-h-screen flex flex-col antialiased">
+
+    <!-- Header Navigation -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16 border-b border-stone-100">
+                
+                <!-- Logo Section -->
+                <div class="flex items-center gap-3">
+                    <img src="bharuwa-sloutions-logo (1).jpg" 
+                         onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='flex';" 
+                         alt="Bharuwa Solutions" 
+                         class="h-10 object-contain">
+                    
+                    <div id="fallback-logo" style="display:none;" class="items-center gap-2">
+                        <span class="text-3xl text-brand font-black tracking-tighter">B</span>
+                        <div class="flex flex-col leading-none">
+                            <span class="text-lg font-bold text-brand tracking-tight">BHARUWA</span>
+                            <span class="text-sm font-semibold text-stone-500 tracking-wider">SOLUTIONS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="hidden sm:block h-8 w-px bg-stone-200 mx-2"></div>
+                    <h1 class="hidden sm:block text-xl font-bold text-stone-800 tracking-tight">B-OptiAsset</h1>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden lg:flex space-x-6 h-full items-center">
+                    <button class="tab-btn active h-full px-1 text-stone-500 hover:text-stone-800 text-sm font-medium" data-target="overview">Overview</button>
+                    <button class="tab-btn h-full px-1 text-stone-500 hover:text-stone-800 text-sm font-medium" data-target="features">Capabilities</button>
+                    <button class="tab-btn h-full px-1 text-stone-500 hover:text-stone-800 text-sm font-medium" data-target="industries">Industry Fit</button>
+                    <button class="tab-btn h-full px-1 text-stone-500 hover:text-stone-800 text-sm font-medium" data-target="competition">Competition</button>
+                    <button class="tab-btn h-full px-1 text-stone-500 hover:text-stone-800 text-sm font-medium" data-target="pricing">Pricing</button>
+                    <button class="tab-btn h-full px-1 text-stone-500 hover:text-stone-800 text-sm font-medium" data-target="roadmap">Roadmap</button>
+                </div>
+
+                <!-- Mobile Hamburger Button -->
+                <div class="lg:hidden flex items-center">
+                    <h1 class="sm:hidden text-lg font-bold text-stone-800 tracking-tight mr-4">B-OptiAsset</h1>
+                    <button id="mobile-menu-btn" class="text-stone-600 hover:text-stone-900 focus:outline-none p-2">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-stone-200 shadow-inner absolute w-full">
+            <div class="px-2 pt-2 pb-4 space-y-1">
+                <button class="mobile-tab-btn active block w-full text-left px-4 py-3 rounded-md text-base font-medium text-stone-700" data-target="overview">Executive Overview</button>
+                <button class="mobile-tab-btn block w-full text-left px-4 py-3 rounded-md text-base font-medium text-stone-700" data-target="features">Core Capabilities</button>
+                <button class="mobile-tab-btn block w-full text-left px-4 py-3 rounded-md text-base font-medium text-stone-700" data-target="industries">Industry Fitment</button>
+                <button class="mobile-tab-btn block w-full text-left px-4 py-3 rounded-md text-base font-medium text-stone-700" data-target="competition">Competitive Landscape</button>
+                <button class="mobile-tab-btn block w-full text-left px-4 py-3 rounded-md text-base font-medium text-stone-700" data-target="pricing">Pricing Strategy</button>
+                <button class="mobile-tab-btn block w-full text-left px-4 py-3 rounded-md text-base font-medium text-stone-700" data-target="roadmap">Product Roadmap</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full bg-nodes">
+
+        <!-- SECTION 1: OVERVIEW -->
+        <section id="overview" class="tab-pane section-fade-in">
+            <div class="mb-6 sm:mb-8 text-center sm:text-left">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-stone-900 mb-2">What is B-OptiAsset?</h2>
+                <p class="text-base sm:text-lg text-stone-600 max-w-4xl mx-auto sm:mx-0">
+                    A Complete Enterprise Asset Lifecycle Management (EAM) System. Designed to help organizations manage the entire asset lifecycle, including maintenance, operations, and asset performance, enabling improved reliability, operational efficiency, and data-driven decision-making.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
+                <!-- Value Prop Text -->
+                <div class="bg-white/95 backdrop-blur-sm p-6 sm:p-8 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-xl font-bold text-brand mb-4">The Platform Vision</h3>
+                    <p class="mb-4 text-sm sm:text-base leading-relaxed text-stone-700">
+                        B-OptiAsset enables organizations to digitally manage, control, and optimize their entire asset lifecycle — ensuring financial accuracy, operational efficiency, and regulatory compliance through automation, intelligence, and real-time visibility.
+                    </p>
+                    <p class="mb-6 text-sm sm:text-base leading-relaxed text-stone-700">
+                        It seamlessly integrates Procurement, Advanced Depreciation Management (as per Companies Act & Income Tax guidelines), Proactive Maintenance, and rigorous physical tracking into one centralized platform.
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4 mt-6 sm:mt-8">
+                        <div class="bg-stone-50 p-3 sm:p-4 rounded-lg text-center border border-stone-200 shadow-sm">
+                            <div class="text-2xl sm:text-3xl font-black text-brand mb-1">15-50%</div>
+                            <div class="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wide">Reduced Op. Cost</div>
+                        </div>
+                        <div class="bg-stone-50 p-3 sm:p-4 rounded-lg text-center border border-stone-200 shadow-sm">
+                            <div class="text-2xl sm:text-3xl font-black text-brand mb-1">10-20%</div>
+                            <div class="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wide">Increased Uptime</div>
+                        </div>
+                        <div class="bg-stone-50 p-3 sm:p-4 rounded-lg text-center border border-stone-200 shadow-sm">
+                            <div class="text-2xl sm:text-3xl font-black text-brand-accent mb-1">&#x2714;</div>
+                            <div class="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wide">100% Tax Compliant</div>
+                        </div>
+                        <div class="bg-stone-50 p-3 sm:p-4 rounded-lg text-center border border-stone-200 shadow-sm">
+                            <div class="text-2xl sm:text-3xl font-black text-brand-accent mb-1">&#x26A1;</div>
+                            <div class="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wide">End-to-End Auto</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Chart -->
+                <div class="bg-white/95 backdrop-blur-sm p-6 sm:p-8 rounded-xl shadow-sm border border-stone-200 flex flex-col h-full">
+                    <h3 class="text-xl font-bold text-stone-800 mb-2 text-center">Comprehensive Lifecycle Coverage</h3>
+                    <p class="text-xs sm:text-sm text-stone-500 text-center mb-4 sm:mb-6">Tap or hover over segments to see detailed descriptions of our core functional areas.</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="lifecycleChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: FEATURES -->
+        <section id="features" class="tab-pane hidden-section section-fade-in">
+            <div class="mb-6 sm:mb-8">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-stone-900 mb-2">Detailed Product Capabilities</h2>
+                <p class="text-base sm:text-lg text-stone-600 max-w-3xl">
+                    Our comprehensive feature suite provides complete flexibility and deep automation across acquisition workflows, financial compliance, maintenance schedules, and physical asset tracking.
+                </p>
+            </div>
+
+            <!-- Automation Highlight Case Study -->
+            <div class="bg-stone-900 text-white rounded-xl shadow-lg p-6 sm:p-8 mb-8 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-brand rounded-full mix-blend-multiply filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+                <div class="relative z-10">
+                    <div class="inline-block px-3 py-1 bg-brand text-white text-[10px] sm:text-xs font-bold rounded-full mb-4 uppercase tracking-wider">
+                        Product Case Study: Core Automation Flow
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-bold mb-3">Zero-Touch Financial Onboarding</h3>
+                    <p class="mb-4 max-w-4xl text-stone-300 text-sm sm:text-base leading-relaxed">
+                        We have implemented an automation framework wherein the user only needs to enter the <strong>Material Receipt Note (MRN) or MRN Quality Check (MRN QC)</strong>. All subsequent financial and accounting processes are handled completely automatically, eliminating human error.
+                    </p>
+                    <p class="mb-6 max-w-4xl text-stone-300 text-sm sm:text-base leading-relaxed">
+                        This workflow triggers the auto-creation of the Purchase Invoice, unique Asset & Machine Code generation, ongoing Depreciation calculation, and immediate Journal Voucher (JV) posting mapped directly to the correct General Ledger (GL) accounts.
+                    </p>
+                    
+                    <div class="flex flex-col md:flex-row items-center justify-between bg-white/10 border border-white/20 rounded-lg p-4 sm:p-6 backdrop-blur-md mt-4 gap-4 sm:gap-2 text-center md:text-left">
+                        <div class="w-full md:w-auto flex flex-col items-center">
+                            <div class="text-2xl sm:text-3xl mb-2">&#x1F4E6;</div>
+                            <div class="font-semibold text-xs sm:text-sm">1. MRN / MRN QC</div>
+                        </div>
+                        <div class="text-brand-accent text-2xl hidden md:block">&#x2794;</div>
+                        <div class="text-brand-accent text-xl md:hidden">&#x2193;</div>
+                        
+                        <div class="w-full md:w-auto flex flex-col items-center">
+                            <div class="text-2xl sm:text-3xl mb-2">&#x1F4C4;</div>
+                            <div class="font-semibold text-xs sm:text-sm">2. Auto Purchase Invoice</div>
+                        </div>
+                        <div class="text-brand-accent text-2xl hidden md:block">&#x2794;</div>
+                        <div class="text-brand-accent text-xl md:hidden">&#x2193;</div>
+                        
+                        <div class="w-full md:w-auto flex flex-col items-center">
+                            <div class="text-2xl sm:text-3xl mb-2">&#x1F3F7;</div>
+                            <div class="font-semibold text-xs sm:text-sm">3. Auto Asset Generation</div>
+                        </div>
+                        <div class="text-brand-accent text-2xl hidden md:block">&#x2794;</div>
+                        <div class="text-brand-accent text-xl md:hidden">&#x2193;</div>
+                        
+                        <div class="w-full md:w-auto flex flex-col items-center">
+                            <div class="text-2xl sm:text-3xl mb-2">&#x1F4B0;</div>
+                            <div class="font-semibold text-xs sm:text-sm text-center">4. Auto JV Posting</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Grid (Aligned to Detailed Doc) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <!-- Advanced Depreciation -->
+                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-stone-200 hover:shadow-md hover:border-brand-light transition-all group">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform">&#x1F4CA;</div>
+                    <h4 class="font-bold text-stone-900 text-lg mb-2">Advanced Depreciation</h4>
+                    <p class="text-xs text-stone-500 mb-2 italic">Ensures 100% statutory compliance without manual spreadsheet calculations.</p>
+                    <ul class="text-xs sm:text-sm text-stone-700 space-y-1 list-disc pl-4">
+                        <li>Supports Straight Line Method (SLM) & Written Down Value (WDV) approaches.</li>
+                        <li>Compliance-based reporting: Income Tax Act & Companies Act.</li>
+                        <li>Automated Journal Voucher (JV) posting & General Ledger (GL) mapping.</li>
+                        <li>Flexible calculation cycles: Monthly, Quarterly, Half-Yearly, Yearly.</li>
+                    </ul>
+                </div>
+                
+                <!-- Asset Acquisition & Classification -->
+                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-stone-200 hover:shadow-md hover:border-brand-light transition-all group">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform">&#x1F4CB;</div>
+                    <h4 class="font-bold text-stone-900 text-lg mb-2">Acquisition & Master Data</h4>
+                    <p class="text-xs text-stone-500 mb-2 italic">Standardizes asset onboarding with rigorous technical precision.</p>
+                    <ul class="text-xs sm:text-sm text-stone-700 space-y-1 list-disc pl-4">
+                        <li>Deep integration with Purchase Orders (PO), Gate Entry, and Material Receipt Notes (MRN).</li>
+                        <li>Asset grouped by block-wise classification for Income Tax tracking.</li>
+                        <li>Highly configurable specification templates to capture technical/operational attributes.</li>
+                    </ul>
+                </div>
+
+                <!-- Maintenance Management -->
+                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-stone-200 hover:shadow-md hover:border-brand-light transition-all group">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform">&#x1F527;</div>
+                    <h4 class="font-bold text-stone-900 text-lg mb-2">Proactive Maintenance</h4>
+                    <p class="text-xs text-stone-500 mb-2 italic">Maximizes equipment uptime and severely reduces breakdown overhead.</p>
+                    <ul class="text-xs sm:text-sm text-stone-700 space-y-1 list-disc pl-4">
+                        <li>Tracks both Preventive and Breakdown maintenance schedules.</li>
+                        <li>Automated Work Order generation and granular task tracking.</li>
+                        <li>Calculates total maintenance cost per individual asset.</li>
+                        <li>Auto-notifications dispatched instantly to maintenance teams.</li>
+                    </ul>
+                </div>
+
+                <!-- Mobile Enablement & QR Tracking -->
+                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-stone-200 hover:shadow-md hover:border-brand-light transition-all group">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform">&#x1F4F1;</div>
+                    <h4 class="font-bold text-stone-900 text-lg mb-2">Mobile & QR Tracking</h4>
+                    <p class="text-xs text-stone-500 mb-2 italic">Eliminates ghost assets and accelerates physical audits by 80%.</p>
+                    <ul class="text-xs sm:text-sm text-stone-700 space-y-1 list-disc pl-4">
+                        <li>Unique QR Codes map physical assets to exact digital specifications.</li>
+                        <li>Real-time mobile app tracking for instant physical audits and verification.</li>
+                        <li>Tracks employee-wise asset allocation and strict issue/return records.</li>
+                        <li>Provides a complete, auditable asset movement log via barcode scanning.</li>
+                    </ul>
+                </div>
+
+                <!-- Asset Movement & Control -->
+                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-stone-200 hover:shadow-md hover:border-brand-light transition-all group">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform">&#x1F69A;</div>
+                    <h4 class="font-bold text-stone-900 text-lg mb-2">Movement & Control</h4>
+                    <p class="text-xs text-stone-500 mb-2 italic">Secures corporate assets during transit and departmental shifts.</p>
+                    <ul class="text-xs sm:text-sm text-stone-700 space-y-1 list-disc pl-4">
+                        <li>Gate pass workflow for Returnable (RGP) and Non-Returnable (NRGP) items.</li>
+                        <li>Tracks inter-departmental and inter-location asset transfers securely.</li>
+                        <li>Maintains extensive history tracking and documented asset custody records.</li>
+                        <li>Direct integration with corporate Project & Capital Budget Management.</li>
+                    </ul>
+                </div>
+
+                <!-- Warranty & Insurance -->
+                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-stone-200 hover:shadow-md hover:border-brand-light transition-all group">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform">&#x1F6E1;&#xFE0F;</div>
+                    <h4 class="font-bold text-stone-900 text-lg mb-2">Warranty & Insurance</h4>
+                    <p class="text-xs text-stone-500 mb-2 italic">Prevents revenue leakage by utilizing existing vendor coverages.</p>
+                    <ul class="text-xs sm:text-sm text-stone-700 space-y-1 list-disc pl-4">
+                        <li>Centralizes policy details, insurer information, claims processing, and renewal tracking.</li>
+                        <li>Automatic warranty coverage validation during Work Order creation to save costs.</li>
+                        <li>Proactive alerts engine for upcoming Warranty & Insurance expiry dates.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: INDUSTRY FITMENT -->
+        <section id="industries" class="tab-pane hidden-section section-fade-in">
+            <div class="mb-6 sm:mb-8">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-stone-900 mb-2">Industry-Wise Fitment</h2>
+                <p class="text-base sm:text-lg text-stone-600 max-w-4xl">
+                    B-OptiAsset is incredibly versatile. It seamlessly fits into multiple industries wherever heavy machinery, IT hardware, or critical infrastructure needs tracking, maintenance, and rigorous financial control.
+                </p>
+            </div>
+
+            <!-- Focus Alert -->
+            <div class="bg-brand-light/40 border-l-4 border-brand p-4 sm:p-6 rounded-r-xl mb-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <div class="text-3xl">&#x1F3AF;</div>
+                <div>
+                    <h4 class="font-bold text-stone-900 mb-1">Top Target Segments</h4>
+                    <p class="text-sm text-stone-700">Our strongest market penetration lies in <strong>Manufacturing (Primary)</strong>, Mid-Large Enterprises, Infrastructure / EPC Companies, and Logistics & Fleet Management.</p>
+                </div>
+            </div>
+
+            <!-- Industry Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10">
+                
+                <div class="bg-white p-5 border-2 border-brand shadow-md rounded-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-brand text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">BEST FIT</div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#x1F3ED;</span>
+                        <h4 class="font-bold text-lg text-stone-900 leading-tight">Manufacturing</h4>
+                    </div>
+                    <ul class="text-xs text-stone-600 space-y-1 mb-3 list-disc pl-4">
+                        <li>Heavy machinery & plant equipment</li>
+                        <li>Preventive & breakdown maintenance</li>
+                        <li>Depreciation & asset tracking</li>
+                    </ul>
+                    <div class="bg-stone-50 p-2 rounded text-xs border border-stone-100">
+                        <span class="font-semibold text-brand">Use Case:</span> Machine lifecycle, maintenance scheduling, utilization.
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 border border-stone-200 shadow-sm rounded-xl hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#x1F69A;</span>
+                        <h4 class="font-bold text-lg text-stone-900 leading-tight">Logistics & Fleet</h4>
+                    </div>
+                    <ul class="text-xs text-stone-600 space-y-1 mb-3 list-disc pl-4">
+                        <li>Trucks, vehicles, containers</li>
+                        <li>Asset movement tracking (RGP/NRGP)</li>
+                        <li>Maintenance & insurance tracking</li>
+                    </ul>
+                    <div class="bg-stone-50 p-2 rounded text-xs border border-stone-100">
+                        <span class="font-semibold text-brand">Use Case:</span> Fleet tracking, cost control, compliance.
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 border border-stone-200 shadow-sm rounded-xl hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#x1F3E2;</span>
+                        <h4 class="font-bold text-lg text-stone-900 leading-tight">Corporate/Enterprises</h4>
+                    </div>
+                    <ul class="text-xs text-stone-600 space-y-1 mb-3 list-disc pl-4">
+                        <li>Laptops, servers, office equipment</li>
+                        <li>Employee asset issuance & return</li>
+                        <li>QR-based tracking audits</li>
+                    </ul>
+                    <div class="bg-stone-50 p-2 rounded text-xs border border-stone-100">
+                        <span class="font-semibold text-brand">Use Case:</span> IT asset lifecycle, employee accountability.
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 border border-stone-200 shadow-sm rounded-xl hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#x1F3E5;</span>
+                        <h4 class="font-bold text-lg text-stone-900 leading-tight">Healthcare</h4>
+                    </div>
+                    <ul class="text-xs text-stone-600 space-y-1 mb-3 list-disc pl-4">
+                        <li>Medical equipment (MRI, ICU devices)</li>
+                        <li>Calibration & maintenance tracking</li>
+                        <li>Warranty & insurance monitoring</li>
+                    </ul>
+                    <div class="bg-stone-50 p-2 rounded text-xs border border-stone-100">
+                        <span class="font-semibold text-brand">Use Case:</span> Critical equipment uptime, compliance.
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 border border-stone-200 shadow-sm rounded-xl hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#x1F3D7;&#xFE0F;</span>
+                        <h4 class="font-bold text-lg text-stone-900 leading-tight">Infra & Construction</h4>
+                    </div>
+                    <ul class="text-xs text-stone-600 space-y-1 mb-3 list-disc pl-4">
+                        <li>Project-based heavy assets</li>
+                        <li>Capital Work in Progress (CWIP)</li>
+                        <li>Site-wise asset allocation & tracking</li>
+                    </ul>
+                    <div class="bg-stone-50 p-2 rounded text-xs border border-stone-100">
+                        <span class="font-semibold text-brand">Use Case:</span> Project asset control, capital budgeting.
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 border border-stone-200 shadow-sm rounded-xl hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#x26A1;</span>
+                        <h4 class="font-bold text-lg text-stone-900 leading-tight">Energy & Utilities</h4>
+                    </div>
+                    <ul class="text-xs text-stone-600 space-y-1 mb-3 list-disc pl-4">
+                        <li>Power plants, transformers</li>
+                        <li>Field equipment mapping</li>
+                        <li>Maintenance-heavy asset workflows</li>
+                    </ul>
+                    <div class="bg-stone-50 p-2 rounded text-xs border border-stone-100">
+                        <span class="font-semibold text-brand">Use Case:</span> Preventive maintenance, uptime optimization.
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Feature to Industry Mapping Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="p-4 sm:p-5 bg-stone-50 border-b border-stone-200">
+                    <h3 class="font-bold text-stone-900">Feature vs. Industry Mapping</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[500px]">
+                        <thead>
+                            <tr class="bg-white border-b border-stone-200 text-sm">
+                                <th class="p-4 font-semibold text-stone-700 w-1/3">B-OptiAsset Core Feature</th>
+                                <th class="p-4 font-semibold text-stone-700">Primary Industry Fit</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-stone-100">
+                            <tr class="hover:bg-stone-50 transition-colors">
+                                <td class="p-4 font-medium text-brand"><i class="font-bold">Depreciation (Companies Act / Income Tax Act)</i></td>
+                                <td class="p-4 text-stone-700">All Finance-driven Organizations</td>
+                            </tr>
+                            <tr class="hover:bg-stone-50 transition-colors">
+                                <td class="p-4 font-medium text-brand"><i class="font-bold">QR / Mobile Tracking & Physical Audit</i></td>
+                                <td class="p-4 text-stone-700">IT, Retail, Manufacturing, Education Sector</td>
+                            </tr>
+                            <tr class="hover:bg-stone-50 transition-colors">
+                                <td class="p-4 font-medium text-brand"><i class="font-bold">Proactive Maintenance Module</i></td>
+                                <td class="p-4 text-stone-700">Manufacturing, Healthcare, Energy, Hospitality</td>
+                            </tr>
+                            <tr class="hover:bg-stone-50 transition-colors">
+                                <td class="p-4 font-medium text-brand"><i class="font-bold">Returnable/Non-Returnable Gate Pass (RGP / NRGP)</i></td>
+                                <td class="p-4 text-stone-700">Manufacturing, Logistics & Supply Chain</td>
+                            </tr>
+                            <tr class="hover:bg-stone-50 transition-colors">
+                                <td class="p-4 font-medium text-brand"><i class="font-bold">Capital Work In Progress (CWIP) Management</i></td>
+                                <td class="p-4 text-stone-700">Construction, Infrastructure, Government Sectors</td>
+                            </tr>
+                            <tr class="hover:bg-stone-50 transition-colors">
+                                <td class="p-4 font-medium text-brand"><i class="font-bold">Automated Workflows (Receipt Note &#x2192; Journal Voucher)</i></td>
+                                <td class="p-4 text-stone-700">Manufacturing, Large Scale Enterprises</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: COMPETITION -->
+        <section id="competition" class="tab-pane hidden-section section-fade-in">
+            <div class="mb-6 sm:mb-8">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-stone-900 mb-2">Competitive Landscape</h2>
+                <p class="text-base sm:text-lg text-stone-600 max-w-3xl">
+                    Mapping B-OptiAsset against major industry players. We successfully bridge the critical gap between overly complex, high-cost legacy Enterprise Asset Management (EAM) systems and lightweight, financially weak tracking applications.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+                <!-- Radar Chart -->
+                <div class="lg:col-span-5 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-stone-200 flex flex-col">
+                    <h3 class="text-lg sm:text-xl font-bold text-stone-800 mb-1">Capability Radar Chart</h3>
+                    <p class="text-xs sm:text-sm text-stone-500 mb-3">B-OptiAsset vs. Legacy EAMs vs. Basic Trackers</p>
+                    
+                    <!-- Radar Chart Help Text -->
+                    <div class="bg-brand-light/40 border border-brand/20 p-2 rounded-lg mb-4 flex items-start gap-2">
+                        <span class="text-brand font-bold text-sm">&#x2139;</span>
+                        <p class="text-[11px] sm:text-xs text-stone-700 leading-tight">
+                            <strong>How to read:</strong> Each point of the web represents a core feature. The further the colored shape stretches toward the outer edge, the stronger that platform's capability is in that specific area.
+                        </p>
+                    </div>
+
+                    <div class="chart-container flex-grow">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Competitor Table -->
+                <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden flex flex-col">
+                    <div class="overflow-x-auto flex-grow">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-stone-50 border-b border-stone-200">
+                                    <th class="p-4 font-semibold text-stone-700">Competitor</th>
+                                    <th class="p-4 font-semibold text-stone-700">Key Differentiator (Theirs)</th>
+                                    <th class="p-4 font-semibold text-stone-700 text-brand">The Gap (Our Advantage)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs sm:text-sm divide-y divide-stone-100">
+                                <tr class="hover:bg-stone-50 transition-colors">
+                                    <td class="p-4">
+                                        <div class="font-bold text-stone-900 whitespace-nowrap">IBM Maximo</div>
+                                        <a href="https://ibm.com/products/maximo" target="_blank" class="text-brand hover:underline text-xs block mt-1">ibm.com/maximo</a>
+                                    </td>
+                                    <td class="p-4 text-stone-600">Deep AI/Digital Twin, heavy enterprise Maintenance, Repair, and Operations (MRO).</td>
+                                    <td class="p-4 text-stone-800 bg-brand-light/30">Extremely expensive, high implementation time. Lacks localized out-of-box regional financial compliance (e.g., India Income Tax rules).</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition-colors">
+                                    <td class="p-4">
+                                        <div class="font-bold text-stone-900 whitespace-nowrap">SAP Enterprise Asset Management (EAM)</div>
+                                        <a href="https://sap.com/products/scm/enterprise-asset-management.html" target="_blank" class="text-brand hover:underline text-xs block mt-1">sap.com/eam</a>
+                                    </td>
+                                    <td class="p-4 text-stone-600">Native integration primarily beneficial if the client is already heavily using the SAP ecosystem.</td>
+                                    <td class="p-4 text-stone-800 bg-brand-light/30">Monolithic architecture. Changes require heavy IT intervention and expensive consulting fees. Not agile enough for the mid-market.</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition-colors">
+                                    <td class="p-4">
+                                        <div class="font-bold text-stone-900 whitespace-nowrap">Oracle Enterprise Asset Management (EAM)</div>
+                                        <a href="https://www.oracle.com/erp/enterprise-asset-management/" target="_blank" class="text-brand hover:underline text-xs block mt-1">oracle.com/eam</a>
+                                    </td>
+                                    <td class="p-4 text-stone-600">Strong integration with Oracle Supply Chain Manufacturing, suited for highly complex global operations.</td>
+                                    <td class="p-4 text-stone-800 bg-brand-light/30">Complex user interface. Requires lengthy and disruptive implementation cycles that mid-market firms cannot afford to sustain.</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition-colors">
+                                    <td class="p-4">
+                                        <div class="font-bold text-stone-900 whitespace-nowrap">Infor Enterprise Asset Management (EAM)</div>
+                                        <a href="https://www.infor.com/products/eam" target="_blank" class="text-brand hover:underline text-xs block mt-1">infor.com/eam</a>
+                                    </td>
+                                    <td class="p-4 text-stone-600">Robust asset performance management and equipment condition monitoring functionalities.</td>
+                                    <td class="p-4 text-stone-800 bg-brand-light/30">High Total Cost of Ownership (TCO). Focuses heavily on performance over the fundamental end-to-end financial/depreciation bridging.</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition-colors">
+                                    <td class="p-4">
+                                        <div class="font-bold text-stone-900 whitespace-nowrap">ServiceNow EAM</div>
+                                        <a href="https://servicenow.com/products/enterprise-asset-management.html" target="_blank" class="text-brand hover:underline text-xs block mt-1">servicenow.com/eam</a>
+                                    </td>
+                                    <td class="p-4 text-stone-600">Excellent IT Service Management (ITSM) bridging over to physical assets.</td>
+                                    <td class="p-4 text-stone-800 bg-brand-light/30">Primarily IT-asset focused historically. Weak on complex, heavy machinery breakdown maintenance workflows.</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition-colors">
+                                    <td class="p-4">
+                                        <div class="font-bold text-stone-900 whitespace-nowrap">Asset Panda</div>
+                                        <a href="https://assetpanda.com" target="_blank" class="text-brand hover:underline text-xs block mt-1">assetpanda.com</a>
+                                    </td>
+                                    <td class="p-4 text-stone-600">Highly customizable mobile app, very easy and cheap to deploy instantly.</td>
+                                    <td class="p-4 text-stone-800 bg-brand-light/30">Lacks robust backend financial accounting (Depreciation engines, Journal Voucher Posting, Revaluation). Ultimately too basic for enterprise needs.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: PRICING -->
+        <section id="pricing" class="tab-pane hidden-section section-fade-in">
+            <div class="mb-6 sm:mb-8">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-stone-900 mb-2">Pricing Strategy & Positioning</h2>
+                <p class="text-base sm:text-lg text-stone-600 max-w-3xl">
+                    Positioning B-OptiAsset to deliver enterprise-grade financial and operational depth at a mid-market accessible price point.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">
+                <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-stone-200 h-full flex flex-col justify-center">
+                    <h3 class="text-xl sm:text-2xl font-bold text-brand mb-4">Value-Driven Pricing</h3>
+                    <p class="mb-4 text-stone-600 text-sm sm:text-base leading-relaxed">
+                        Legacy systems (Maximo, SAP, Oracle) require massive upfront capital <strong>(often $100k - $500k+ just for implementation)</strong> and long rollout cycles. Basic asset tracking apps (like Asset Panda) are cheap <strong>(~$1,500 - $3,000/year)</strong> but require massive manual spreadsheet workarounds for Finance teams.
+                    </p>
+                    <ul class="space-y-4 mt-4">
+                        <li class="flex items-start">
+                            <span class="text-brand mr-3 font-bold text-xl">&#x2713;</span>
+                            <div>
+                                <h4 class="font-semibold text-stone-900 text-sm sm:text-base">Zero Hidden Implementation Fees</h4>
+                                <p class="text-xs sm:text-sm text-stone-500">Agile deployment reduces typical 6-month rollouts to weeks, saving immense CapEx.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-brand mr-3 font-bold text-xl">&#x2713;</span>
+                            <div>
+                                <h4 class="font-semibold text-stone-900 text-sm sm:text-base">Inclusive Financial Modules</h4>
+                                <p class="text-xs sm:text-sm text-stone-500">Deep depreciation and statutory compliance engines are included out-of-the-box, not as pricey third-party add-ons.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-brand mr-3 font-bold text-xl">&#x2713;</span>
+                            <div>
+                                <h4 class="font-semibold text-stone-900 text-sm sm:text-base">Scalable Software as a Service (SaaS) Model</h4>
+                                <p class="text-xs sm:text-sm text-stone-500">Priced strategically to win the mid-market while retaining full enterprise EAM functionality.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg sm:text-xl font-bold text-stone-800 mb-2 text-center">Estimated Total Cost of Ownership (TCO) Comparison</h3>
+                    <p class="text-xs sm:text-sm text-stone-500 text-center mb-4 sm:mb-6">Relative comparison of software licensing, hidden modules, and implementation overhead.</p>
+                    <div class="chart-container">
+                        <canvas id="pricingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: ROADMAP -->
+        <section id="roadmap" class="tab-pane hidden-section section-fade-in">
+            <div class="mb-6 sm:mb-8">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-stone-900 mb-2">Product Upcoming Releases & Roadmap</h2>
+                <p class="text-base sm:text-lg text-stone-600 max-w-3xl">
+                    Our commitment to continuous innovation, focusing on deep accounting, operational efficiency, and eventually Artificial Intelligence (AI) driven asset intelligence.
+                </p>
+            </div>
+
+            <div class="bg-white p-5 sm:p-8 rounded-xl shadow-sm border border-stone-200 max-w-4xl mx-auto">
+                <div class="space-y-8">
+                    
+                    <!-- Q1 -->
+                    <div class="timeline-container">
+                        <div class="timeline-marker"></div>
+                        <div class="bg-brand-light inline-block px-3 py-1 text-brand-dark text-[10px] sm:text-xs font-bold rounded-full mb-2 uppercase tracking-wider">Upcoming Releases</div>
+                        <h3 class="text-lg sm:text-xl font-bold text-stone-900 mb-2">Enhanced Financial Flexibility</h3>
+                        <p class="text-sm text-stone-600 mb-3">Focusing on deep accounting mechanics to support complex enterprise restructurings.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div class="border border-stone-200 rounded-lg p-3 bg-stone-50 text-xs sm:text-sm">
+                                <span class="font-semibold text-brand">&#x2195; Asset Revaluation:</span> Upward and downward dynamic financial adjustments.
+                            </div>
+                            <div class="border border-stone-200 rounded-lg p-3 bg-stone-50 text-xs sm:text-sm">
+                                <span class="font-semibold text-brand">&#x267B; Disposal Process:</span> Advanced enhancements in asset retirement workflows.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mid-Term -->
+                    <div class="timeline-container">
+                        <div class="timeline-marker bg-brand-accent"></div>
+                        <div class="bg-orange-100 inline-block px-3 py-1 text-orange-800 text-[10px] sm:text-xs font-bold rounded-full mb-2 uppercase tracking-wider">Roadmap</div>
+                        <h3 class="text-lg sm:text-xl font-bold text-stone-900 mb-2">Capital & Smart Interactions</h3>
+                        <p class="text-sm text-stone-600 mb-3">Expanding project management and introducing conversational interfaces.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div class="border border-stone-200 rounded-lg p-3 bg-stone-50 text-xs sm:text-sm">
+                                <span class="font-semibold text-brand-accent">&#x1F3D7; AUC / CWIP:</span> Asset Under Construction & Capital Work in Progress tracking.
+                            </div>
+                            <div class="border border-stone-200 rounded-lg p-3 bg-stone-50 text-xs sm:text-sm">
+                                <span class="font-semibold text-brand-accent">&#x1F916; Chatbot:</span> Integrated conversational agent for quick queries and status checks.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Long-Term -->
+                    <div class="timeline-container">
+                        <div class="timeline-marker bg-stone-400"></div>
+                        <div class="bg-stone-200 inline-block px-3 py-1 text-stone-700 text-[10px] sm:text-xs font-bold rounded-full mb-2 uppercase tracking-wider">AI Initiatives</div>
+                        <h3 class="text-lg sm:text-xl font-bold text-stone-900 mb-2">Cognitive Asset Management</h3>
+                        <p class="text-sm text-stone-600 mb-3">Leveraging Machine Learning to eliminate manual data entry and predict financial outcomes.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                            <div class="border border-stone-200 rounded-lg p-3 bg-stone-50 text-xs sm:text-sm">
+                                <span class="font-semibold text-stone-700">&#x1F4F0; Optical Character Recognition (OCR):</span> Document Text Extraction & Smart Form Autofill.
+                            </div>
+                            <div class="border border-stone-200 rounded-lg p-3 bg-stone-50 text-xs sm:text-sm">
+                                <span class="font-semibold text-stone-700">&#x23F3; Life Modeling:</span> Intelligent Useful Life & Residual Value Management algorithms.
+                            </div>
+                            <div class="border border-stone-200 rounded-lg p-3 bg-stone-50 bg-gradient-to-br from-brand-light/30 to-brand-accent/10 text-xs sm:text-sm">
+                                <span class="font-semibold text-stone-700">&#x1F9E0; Artificial Intelligence (AI):</span> Broad AI integration for asset health and predictive failure modeling.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-stone-200 mt-auto py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-xs sm:text-sm text-stone-500 gap-4">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-brand">B-OptiAsset</span>
+                <span>&bull;</span>
+                <span>Bharuwa Solutions</span>
+            </div>
+            <div class="text-center md:text-right">
+                Internal Management Presentation &bull; Mobile Optimized
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Logic & Visualization Generation -->
+    <script>
+        // --- 1. Global State & DOM Elements ---
+        const desktopTabs = document.querySelectorAll('.tab-btn');
+        const mobileTabs = document.querySelectorAll('.mobile-tab-btn');
+        const panes = document.querySelectorAll('.tab-pane');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        // Theme Colors
+        const BHARUWA_BLUE = '#1976D2';
+        const LIGHT_BLUE = '#60a5fa';
+        const DARK_SLATE = '#0f172a';
+        const AMBER = '#f59e0b';
+
+        // Track initialized charts
+        let chartsInitialized = {
+            lifecycle: false,
+            radar: false,
+            pricing: false
+        };
+        let chartInstances = {};
+
+        // --- 2. Mobile Menu Toggle ---
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // --- 3. Chart Configuration & Rendering Functions ---
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { font: { family: 'Inter, sans-serif' } }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    titleFont: { family: 'Inter, sans-serif', size: 13 },
+                    bodyFont: { family: 'Inter, sans-serif', size: 12 },
+                    padding: 10,
+                    cornerRadius: 6
+                }
+            }
+        };
+
+        function renderLifecycleChart() {
+            if (chartsInitialized.lifecycle) return;
+            const ctx = document.getElementById('lifecycleChart').getContext('2d');
+            chartInstances.lifecycle = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        'Acquisition & Code Gen', 
+                        'Proactive Maintenance', 
+                        'Depreciation & Compliance', 
+                        'Retirement & Disposal'
+                    ],
+                    datasets: [{
+                        data: [25, 30, 35, 10],
+                        backgroundColor: [LIGHT_BLUE, BHARUWA_BLUE, DARK_SLATE, AMBER],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    cutout: '60%',
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        tooltip: { 
+                            callbacks: { 
+                                label: function(context) {
+                                    const descriptions = [
+                                        " Procurement integration, Purchase Orders, and auto-asset generation.",
+                                        " Breakdown tracking, preventative scheduling, and work order creation.",
+                                        " Automated statutory depreciation, GL mapping, and JV posting.",
+                                        " Full lifecycle tracking through auditable auctions and final disposal."
+                                    ];
+                                    return descriptions[context.dataIndex]; 
+                                } 
+                            } 
+                        }
+                    }
+                }
+            });
+            chartsInitialized.lifecycle = true;
+        }
+
+        function renderRadarChart() {
+            if (chartsInitialized.radar) return;
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            chartInstances.radar = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Financial Automation', 'Agility & Speed', 'Cost Efficiency', 'Mobile/QR Tracking', 'Heavy MRO Capabilities'],
+                    datasets: [
+                        {
+                            label: 'B-OptiAsset',
+                            data: [95, 90, 85, 90, 60],
+                            backgroundColor: 'rgba(25, 118, 210, 0.2)',
+                            borderColor: BHARUWA_BLUE,
+                            pointBackgroundColor: BHARUWA_BLUE,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Legacy EAM Systems',
+                            data: [70, 30, 20, 60, 95],
+                            backgroundColor: 'rgba(15, 23, 42, 0.1)',
+                            borderColor: DARK_SLATE,
+                            pointBackgroundColor: DARK_SLATE,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Basic Asset Trackers',
+                            data: [30, 95, 95, 85, 20],
+                            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                            borderColor: AMBER,
+                            pointBackgroundColor: AMBER,
+                            borderWidth: 2,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: { font: { family: 'Inter, sans-serif', size: window.innerWidth < 600 ? 9 : 11 }, color: '#444' },
+                            ticks: { display: false, max: 100, min: 0 }
+                        }
+                    }
+                }
+            });
+            chartsInitialized.radar = true;
+        }
+
+        function renderPricingChart() {
+            if (chartsInitialized.pricing) return;
+            const ctx = document.getElementById('pricingChart').getContext('2d');
+            chartInstances.pricing = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Legacy EAM Systems', 'B-OptiAsset', 'Basic Asset Trackers'],
+                    datasets: [{
+                        label: 'Relative TCO Index',
+                        data: [100, 40, 15],
+                        backgroundColor: [DARK_SLATE, BHARUWA_BLUE, '#cbd5e1'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const desc = [
+                                        'Estimated $100k-$500k+ Implementation', 
+                                        'High-Value SaaS Pricing (Mid-Market Sweet Spot)', 
+                                        'Estimated ~$1.5k-$3k/yr (Missing critical Finance features)'
+                                    ];
+                                    return desc[context.dataIndex];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { display: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+            chartsInitialized.pricing = true;
+        }
+
+        // --- 4. Navigation Logic ---
+        function switchTab(targetId) {
+            // Update Desktop Buttons
+            desktopTabs.forEach(btn => {
+                if (btn.dataset.target === targetId) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            
+            // Update Mobile Buttons
+            mobileTabs.forEach(btn => {
+                if (btn.dataset.target === targetId) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // Hide Mobile Menu after selection
+            mobileMenu.classList.add('hidden');
+
+            // Update Panes & Charts
+            panes.forEach(pane => {
+                if (pane.id === targetId) {
+                    pane.classList.remove('hidden-section');
+                    // Render charts on active tab
+                    setTimeout(() => {
+                        if (targetId === 'overview') renderLifecycleChart();
+                        else if (targetId === 'competition') renderRadarChart();
+                        else if (targetId === 'pricing') renderPricingChart();
+                    }, 50);
+                } else {
+                    pane.classList.add('hidden-section');
+                }
+            });
+            
+            // Scroll to top of main area on mobile
+            if(window.innerWidth < 1024) {
+                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Event Listeners
+        desktopTabs.forEach(tab => tab.addEventListener('click', (e) => switchTab(e.target.dataset.target)));
+        mobileTabs.forEach(tab => tab.addEventListener('click', (e) => switchTab(e.target.dataset.target)));
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            renderLifecycleChart();
+        });
+
+    </script>
+</body>
+</html>
